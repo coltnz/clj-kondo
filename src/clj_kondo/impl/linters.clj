@@ -124,6 +124,15 @@
           (node->line (:filename ctx) keyvec :warning :single-key-in
                       (format "%s with single key" called-name)))))))
 
+(defn lint-atom-ops [ctx called-ns called-name call]
+  (when-not (utils/linter-disabled? ctx :deref-in-atom-call)
+    (let [[_ atom-arg _ ] (:children call)]
+      (when (and atom-arg (= :deref (tag atom-arg)))
+        (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) atom-arg :warning :deref-in-atom-call
+                  (format "%s/%s called with deref-ed argument" called-ns called-name)))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)]
@@ -134,6 +143,9 @@
       (lint-missing-else-branch ctx (:expr call))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.core swap!] [clojure.core reset!] [clojure.core compare-and-set!]
+       [clojure.core swap-vals!][clojure.core reset-vals!])
+      (lint-atom-ops ctx called-ns called-name (:expr call))
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

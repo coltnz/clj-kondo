@@ -341,6 +341,30 @@ foo/foo ;; this does use the private var
    (lint! [(io/file "corpus" "cond_without_else" "core.cljc")
            (io/file "corpus" "cond_without_else" "core.cljs")])))
 
+(deftest atom-ops-test
+  (assert-submaps
+    '({:file "corpus/atom/core.cljc",
+      :row 3,
+      :col 8,
+      :level :warning,
+      :message "clojure.core/swap! called with deref-ed argument"}
+     {:file "corpus/atom/core.cljc",
+      :row 4,
+      :col 13,
+      :level :warning,
+      :message "clojure.core/swap-vals! called with deref-ed argument"}
+     {:file "corpus/atom/core.cljc",
+      :row 5,
+      :col 9,
+      :level :warning,
+      :message "clojure.core/reset! called with deref-ed argument"}
+     {:file "corpus/atom/core.cljc",
+      :row 6,
+      :col 14,
+      :level :warning,
+      :message "clojure.core/reset-vals! called with deref-ed argument"})
+    (lint! [(io/file "corpus" "atom" "core.cljc")])))
+
 (deftest cljs-core-macro-test
   (assert-submap '{:file "<stdin>",
                    :row 1,
